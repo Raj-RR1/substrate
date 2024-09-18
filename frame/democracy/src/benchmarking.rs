@@ -302,7 +302,7 @@ benchmarks! {
 		vetoers.sort();
 		Blacklist::<T>::insert(proposal_hash, (T::BlockNumber::zero(), vetoers));
 
-		let origin = T::VetoOrigin::successful_origin();
+		let origin = T::VetoOrigin::successful_origin().map_err(|_|BenchmarkError::Weightless)?;
 		ensure!(NextExternal::<T>::get().is_some(), "no external proposal");
 	}: _<T::Origin>(origin, proposal_hash)
 	verify {

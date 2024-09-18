@@ -864,8 +864,8 @@ impl<O, T> EnsureOrigin<O> for EnsureNever<T> {
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> O {
-		unimplemented!()
+	fn successful_origin() -> Result<O, ()> {
+		Err(())
 	}
 }
 
