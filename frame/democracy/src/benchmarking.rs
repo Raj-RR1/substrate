@@ -193,7 +193,7 @@ benchmarks! {
 	}
 
 	emergency_cancel {
-		let origin = T::CancellationOrigin::successful_origin();
+		let origin = T::CancellationOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let referendum_index = add_referendum::<T>(0)?;
 		assert_ok!(Democracy::<T>::referendum_status(referendum_index));
 	}: _<T::Origin>(origin, referendum_index)
@@ -217,9 +217,9 @@ benchmarks! {
 		// Place our proposal in the external queue, too.
 		let hash = T::Hashing::hash_of(&0);
 		assert_ok!(
-			Democracy::<T>::external_propose(T::ExternalOrigin::successful_origin(), hash.clone())
+			Democracy::<T>::external_propose(T::ExternalOrigin::successful_origin().expect("ExternalOrigin has no successful origin required for the benchmark"), hash.clone())
 		);
-		let origin = T::BlacklistOrigin::successful_origin();
+		let origin = T::BlacklistOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		// Add a referendum of our proposal.
 		let referendum_index = add_referendum::<T>(0)?;
 		assert_ok!(Democracy::<T>::referendum_status(referendum_index));
@@ -236,7 +236,7 @@ benchmarks! {
 	external_propose {
 		let v in 1 .. MAX_VETOERS as u32;
 
-		let origin = T::ExternalOrigin::successful_origin();
+		let origin = T::ExternalOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let proposal_hash = T::Hashing::hash_of(&0);
 		// Add proposal to blacklist with block number 0
 
@@ -255,7 +255,7 @@ benchmarks! {
 	}
 
 	external_propose_majority {
-		let origin = T::ExternalMajorityOrigin::successful_origin();
+		let origin = T::ExternalMajorityOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let proposal_hash = T::Hashing::hash_of(&0);
 	}: _<T::Origin>(origin, proposal_hash)
 	verify {
@@ -264,7 +264,7 @@ benchmarks! {
 	}
 
 	external_propose_default {
-		let origin = T::ExternalDefaultOrigin::successful_origin();
+		let origin = T::ExternalDefaultOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let proposal_hash = T::Hashing::hash_of(&0);
 	}: _<T::Origin>(origin, proposal_hash)
 	verify {
@@ -273,12 +273,12 @@ benchmarks! {
 	}
 
 	fast_track {
-		let origin_propose = T::ExternalDefaultOrigin::successful_origin();
+		let origin_propose = T::ExternalDefaultOrigin::successful_origin().expect("ExternalDefaultOrigin has no successful origin required for the benchmark");
 		let proposal_hash: T::Hash = T::Hashing::hash_of(&0);
 		Democracy::<T>::external_propose_default(origin_propose, proposal_hash.clone())?;
 
 		// NOTE: Instant origin may invoke a little bit more logic, but may not always succeed.
-		let origin_fast_track = T::FastTrackOrigin::successful_origin();
+		let origin_fast_track = T::FastTrackOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let voting_period = T::FastTrackVotingPeriod::get();
 		let delay = 0u32;
 	}: _<T::Origin>(origin_fast_track, proposal_hash, voting_period.into(), delay.into())
@@ -292,7 +292,7 @@ benchmarks! {
 
 		let proposal_hash: T::Hash = T::Hashing::hash_of(&v);
 
-		let origin_propose = T::ExternalDefaultOrigin::successful_origin();
+		let origin_propose = T::ExternalDefaultOrigin::successful_origin().expect("ExternalDefaultOrigin has no successful origin required for the benchmark");
 		Democracy::<T>::external_propose_default(origin_propose, proposal_hash.clone())?;
 
 		let mut vetoers: Vec<T::AccountId> = Vec::new();
@@ -349,7 +349,7 @@ benchmarks! {
 		// Launch external
 		LastTabledWasExternal::<T>::put(false);
 
-		let origin = T::ExternalMajorityOrigin::successful_origin();
+		let origin = T::ExternalMajorityOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let proposal_hash = T::Hashing::hash_of(&r);
 		let call = Call::<T>::external_propose_majority { proposal_hash };
 		call.dispatch_bypass_filter(origin)?;

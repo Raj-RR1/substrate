@@ -40,7 +40,7 @@ pub trait EnsureOrigin<OuterOrigin> {
 	///
 	/// ** Should be used for benchmarking only!!! **
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> OuterOrigin;
+	fn successful_origin() -> Result<OuterOrigin, ()>;
 }
 
 /// Some sort of check on the origin is performed by this object.
@@ -161,8 +161,8 @@ impl<OuterOrigin, L: EnsureOrigin<OuterOrigin>, R: EnsureOrigin<OuterOrigin>>
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> OuterOrigin {
-		L::successful_origin()
+	fn successful_origin() -> Result<OuterOrigin, ()> {
+		Ok(L::successful_origin())
 	}
 }
 
@@ -179,8 +179,8 @@ mod tests {
 			Ok(())
 		}
 		#[cfg(feature = "runtime-benchmarks")]
-		fn successful_origin() -> () {
-			()
+		fn successful_origin() -> Result<OuterOrigin, ()> {
+			Err(())
 		}
 	}
 
@@ -190,8 +190,8 @@ mod tests {
 			Err(())
 		}
 		#[cfg(feature = "runtime-benchmarks")]
-		fn successful_origin() -> () {
-			()
+		fn successful_origin() -> Result<OuterOrigin, ()> {
+			Err(())
 		}
 	}
 

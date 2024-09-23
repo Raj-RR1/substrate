@@ -328,7 +328,7 @@ benchmarks_instance_pallet! {
 
 		create_default_asset::<T, I>(true);
 
-		let origin = T::ForceOrigin::successful_origin();
+		let origin = T::ForceOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let call = Call::<T, I>::force_set_metadata {
 			id: Default::default(),
 			name: name.clone(),
@@ -349,7 +349,7 @@ benchmarks_instance_pallet! {
 		let origin = SystemOrigin::Signed(caller.clone()).into();
 		Assets::<T, I>::set_metadata(origin, Default::default(), dummy.clone(), dummy, 12)?;
 
-		let origin = T::ForceOrigin::successful_origin();
+		let origin = T::ForceOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let call = Call::<T, I>::force_clear_metadata { id: Default::default() };
 	}: { call.dispatch_bypass_filter(origin)? }
 	verify {
@@ -359,7 +359,7 @@ benchmarks_instance_pallet! {
 	force_asset_status {
 		let (caller, caller_lookup) = create_default_asset::<T, I>(true);
 
-		let origin = T::ForceOrigin::successful_origin();
+		let origin = T::ForceOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let call = Call::<T, I>::force_asset_status {
 			id: Default::default(),
 			owner: caller_lookup.clone(),

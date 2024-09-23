@@ -62,7 +62,7 @@ benchmarks! {
 		let caller = funded_account::<T>("caller", 0);
 		whitelist_account!(caller);
 		let (preimage, hash) = sized_preimage_and_hash::<T>(s);
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
 	}: note_preimage(RawOrigin::Signed(caller), preimage)
 	verify {
 		assert!(Preimage::<T>::have_preimage(&hash));
@@ -71,8 +71,8 @@ benchmarks! {
 	note_no_deposit_preimage {
 		let s in 0 .. T::MaxSize::get();
 		let (preimage, hash) = sized_preimage_and_hash::<T>(s);
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
-	}: note_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), preimage)
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
+	}: note_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, preimage)
 	verify {
 		assert!(Preimage::<T>::have_preimage(&hash));
 	}
@@ -90,8 +90,8 @@ benchmarks! {
 	// Cheap unnote - will not unreserve since there's no deposit held.
 	unnote_no_deposit_preimage {
 		let (preimage, hash) = preimage_and_hash::<T>();
-		assert_ok!(Preimage::<T>::note_preimage(T::ManagerOrigin::successful_origin(), preimage));
-	}: unnote_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), hash.clone())
+		assert_ok!(Preimage::<T>::note_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), preimage));
+	}: unnote_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash.clone())
 	verify {
 		assert!(!Preimage::<T>::have_preimage(&hash));
 	}
@@ -102,30 +102,30 @@ benchmarks! {
 		let noter = funded_account::<T>("noter", 0);
 		whitelist_account!(noter);
 		assert_ok!(Preimage::<T>::note_preimage(RawOrigin::Signed(noter).into(), preimage));
-	}: _<T::Origin>(T::ManagerOrigin::successful_origin(), hash)
+	}: _<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash)
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), Some(RequestStatus::Requested(1)));
 	}
 	// Cheap request - would unreserve the deposit but none was held.
 	request_no_deposit_preimage {
 		let (preimage, hash) = preimage_and_hash::<T>();
-		assert_ok!(Preimage::<T>::note_preimage(T::ManagerOrigin::successful_origin(), preimage));
-	}: request_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), hash)
+		assert_ok!(Preimage::<T>::note_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), preimage));
+	}: request_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash)
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), Some(RequestStatus::Requested(1)));
 	}
 	// Cheap request - the preimage is not yet noted, so deposit to unreserve.
 	request_unnoted_preimage {
 		let (_, hash) = preimage_and_hash::<T>();
-	}: request_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), hash)
+	}: request_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash)
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), Some(RequestStatus::Requested(1)));
 	}
 	// Cheap request - the preimage is already requested, so just a counter bump.
 	request_requested_preimage {
 		let (_, hash) = preimage_and_hash::<T>();
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
-	}: request_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), hash)
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
+	}: request_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash)
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), Some(RequestStatus::Requested(2)));
 	}
@@ -133,26 +133,26 @@ benchmarks! {
 	// Expensive unrequest - last reference and it's noted, so will destroy the preimage.
 	unrequest_preimage {
 		let (preimage, hash) = preimage_and_hash::<T>();
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
-		assert_ok!(Preimage::<T>::note_preimage(T::ManagerOrigin::successful_origin(), preimage));
-	}: _<T::Origin>(T::ManagerOrigin::successful_origin(), hash.clone())
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
+		assert_ok!(Preimage::<T>::note_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), preimage));
+	}: _<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash.clone())
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), None);
 	}
 	// Cheap unrequest - last reference, but it's not noted.
 	unrequest_unnoted_preimage {
 		let (_, hash) = preimage_and_hash::<T>();
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
-	}: unrequest_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), hash.clone())
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
+	}: unrequest_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash.clone())
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), None);
 	}
 	// Cheap unrequest - not the last reference.
 	unrequest_multi_referenced_preimage {
 		let (_, hash) = preimage_and_hash::<T>();
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
-		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin(), hash.clone()));
-	}: unrequest_preimage<T::Origin>(T::ManagerOrigin::successful_origin(), hash.clone())
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
+		assert_ok!(Preimage::<T>::request_preimage(T::ManagerOrigin::successful_origin().expect("ManagerOrigin has no successful origin required for the benchmark"), hash.clone()));
+	}: unrequest_preimage<T::Origin>(T::ManagerOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, hash.clone())
 	verify {
 		assert_eq!(StatusFor::<T>::get(&hash), Some(RequestStatus::Requested(1)));
 	}

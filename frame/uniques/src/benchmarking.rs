@@ -138,7 +138,7 @@ fn assert_last_event<T: Config<I>, I: 'static>(generic_event: <T as Config<I>>::
 benchmarks_instance_pallet! {
 	create {
 		let class = T::Helper::class(0);
-		let origin = T::CreateOrigin::successful_origin(&class);
+		let origin = T::CreateOrigin::successful_origin(&class).map_err(|_| BenchmarkError::Weightless)?;
 		let caller = T::CreateOrigin::ensure_origin(origin.clone(), &class).unwrap();
 		whitelist_account!(caller);
 		let admin = T::Lookup::unlookup(caller.clone());
@@ -291,7 +291,7 @@ benchmarks_instance_pallet! {
 
 	force_asset_status {
 		let (class, caller, caller_lookup) = create_class::<T, I>();
-		let origin = T::ForceOrigin::successful_origin();
+		let origin = T::ForceOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let call = Call::<T, I>::force_asset_status {
 			class,
 			owner: caller_lookup.clone(),

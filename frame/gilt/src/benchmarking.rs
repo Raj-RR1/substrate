@@ -76,7 +76,7 @@ benchmarks! {
 	}
 
 	set_target {
-		let origin = T::AdminOrigin::successful_origin();
+		let origin = T::AdminOrigin::successful_origin().expect("AdminOrigin has no successful origin required for the test");
 	}: _<T::Origin>(origin, Default::default())
 	verify {}
 
@@ -107,7 +107,7 @@ benchmarks! {
 		}
 
 		Call::<T>::set_target { target: Perquintill::from_percent(100) }
-			.dispatch_bypass_filter(T::AdminOrigin::successful_origin())?;
+			.dispatch_bypass_filter(T::AdminOrigin::successful_origin().expect("AdminOrigin has no successful origin required for the test"))?;
 
 	}: { Gilt::<T>::pursue_target(b) }
 
@@ -123,7 +123,7 @@ benchmarks! {
 		}
 
 		Call::<T>::set_target { target: Perquintill::from_percent(100) }
-			.dispatch_bypass_filter(T::AdminOrigin::successful_origin())?;
+			.dispatch_bypass_filter(T::AdminOrigin::successful_origin().expect("AdminOrigin has no successful origin required for the test"))?;
 
 	}: { Gilt::<T>::pursue_target(q) }
 

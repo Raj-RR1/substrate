@@ -365,8 +365,8 @@ mod benchmark {
 	const SEED: u32 = 0;
 
 	fn set_members<T: Config<I>, I: 'static>(members: Vec<T::AccountId>, prime: Option<usize>) {
-		let reset_origin = T::ResetOrigin::successful_origin();
-		let prime_origin = T::PrimeOrigin::successful_origin();
+		let reset_origin = T::ResetOrigin::successful_origin().expect("ResetOrigin has no successful origin required for the benchmark");
+		let prime_origin = T::PrimeOrigin::successful_origin().expect("PrimeOrigin has no successful origin required for the benchmark");
 
 		assert_ok!(<Membership<T, I>>::reset_members(reset_origin, members.clone()));
 		if let Some(prime) = prime.map(|i| members[i].clone()) {
@@ -384,7 +384,7 @@ mod benchmark {
 			set_members::<T, I>(members.clone(), None);
 			let new_member = account::<T::AccountId>("add", m, SEED);
 		}: {
-			assert_ok!(<Membership<T, I>>::add_member(T::AddOrigin::successful_origin(), new_member.clone()));
+			assert_ok!(<Membership<T, I>>::add_member(T::AddOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, new_member.clone()));
 		}
 		verify {
 			assert!(<Members<T, I>>::get().contains(&new_member));
@@ -401,7 +401,7 @@ mod benchmark {
 
 			let to_remove = members.first().cloned().unwrap();
 		}: {
-			assert_ok!(<Membership<T, I>>::remove_member(T::RemoveOrigin::successful_origin(), to_remove.clone()));
+			assert_ok!(<Membership<T, I>>::remove_member(T::RemoveOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, to_remove.clone()));
 		} verify {
 			assert!(!<Members<T, I>>::get().contains(&to_remove));
 			// prime is rejigged
@@ -419,7 +419,7 @@ mod benchmark {
 			let remove = members.first().cloned().unwrap();
 		}: {
 			assert_ok!(<Membership<T, I>>::swap_member(
-				T::SwapOrigin::successful_origin(),
+				T::SwapOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?,
 				remove.clone(),
 				add.clone(),
 			));
@@ -439,7 +439,7 @@ mod benchmark {
 			set_members::<T, I>(members.clone(), Some(members.len() - 1));
 			let mut new_members = (m..2*m).map(|i| account("member", i, SEED)).collect::<Vec<T::AccountId>>();
 		}: {
-			assert_ok!(<Membership<T, I>>::reset_members(T::ResetOrigin::successful_origin(), new_members.clone()));
+			assert_ok!(<Membership<T, I>>::reset_members(T::ResetOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, new_members.clone()));
 		} verify {
 			new_members.sort();
 			assert_eq!(<Members<T, I>>::get(), new_members);
@@ -474,7 +474,7 @@ mod benchmark {
 			let prime = members.last().cloned().unwrap();
 			set_members::<T, I>(members, None);
 		}: {
-			assert_ok!(<Membership<T, I>>::set_prime(T::PrimeOrigin::successful_origin(), prime));
+			assert_ok!(<Membership<T, I>>::set_prime(T::PrimeOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, prime));
 		} verify {
 			assert!(<Prime<T, I>>::get().is_some());
 			assert!(<T::MembershipChanged>::get_prime().is_some());
@@ -487,7 +487,7 @@ mod benchmark {
 			let prime = members.last().cloned().unwrap();
 			set_members::<T, I>(members, None);
 		}: {
-			assert_ok!(<Membership<T, I>>::clear_prime(T::PrimeOrigin::successful_origin()));
+			assert_ok!(<Membership<T, I>>::clear_prime(T::PrimeOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?));
 		} verify {
 			assert!(<Prime<T, I>>::get().is_none());
 			assert!(<T::MembershipChanged>::get_prime().is_none());

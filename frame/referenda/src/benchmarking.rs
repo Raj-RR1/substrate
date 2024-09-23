@@ -235,7 +235,7 @@ benchmarks! {
 	refund_decision_deposit {
 		let (caller, index) = create_referendum::<T>();
 		place_deposit::<T>(index);
-		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin(), index));
+		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin().expect("CancelOrigin has no successful origin required for the benchmark"), index));
 	}: _(RawOrigin::Signed(caller), index)
 	verify {
 		assert_matches!(ReferendumInfoFor::<T>::get(index), Some(ReferendumInfo::Cancelled(_, _, None)));
@@ -244,7 +244,7 @@ benchmarks! {
 	cancel {
 		let (_caller, index) = create_referendum::<T>();
 		place_deposit::<T>(index);
-	}: _<T::Origin>(T::CancelOrigin::successful_origin(), index)
+	}: _<T::Origin>(T::CancelOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, index)
 	verify {
 		assert_matches!(ReferendumInfoFor::<T>::get(index), Some(ReferendumInfo::Cancelled(..)));
 	}
@@ -252,7 +252,7 @@ benchmarks! {
 	kill {
 		let (_caller, index) = create_referendum::<T>();
 		place_deposit::<T>(index);
-	}: _<T::Origin>(T::KillOrigin::successful_origin(), index)
+	}: _<T::Origin>(T::KillOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?, index)
 	verify {
 		assert_matches!(ReferendumInfoFor::<T>::get(index), Some(ReferendumInfo::Killed(..)));
 	}
@@ -263,7 +263,7 @@ benchmarks! {
 		skip_prepare_period::<T>(index);
 		nudge::<T>(index);
 		let track = Referenda::<T>::ensure_ongoing(index).unwrap().track;
-		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin(), index));
+		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin().expect("CancelOrigin has no successful origin required for the benchmark"), index));
 		assert_eq!(DecidingCount::<T>::get(&track), 1);
 	}: one_fewer_deciding(RawOrigin::Root, track.clone())
 	verify {
@@ -275,7 +275,7 @@ benchmarks! {
 		// No spaces free in the queue.
 		let queued = fill_queue::<T>(index, 0, 90);
 		let track = Referenda::<T>::ensure_ongoing(index).unwrap().track;
-		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin(), queued[0]));
+		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin().expect("CancelOrigin has no successful origin required for the benchmark"), queued[0]));
 		assert_eq!(TrackQueue::<T>::get(&track).len() as u32, T::MaxQueued::get());
 		let deciding_count = DecidingCount::<T>::get(&track);
 	}: one_fewer_deciding(RawOrigin::Root, track.clone())
@@ -294,7 +294,7 @@ benchmarks! {
 		// No spaces free in the queue.
 		let queued = fill_queue::<T>(index, 0, 0);
 		let track = Referenda::<T>::ensure_ongoing(index).unwrap().track;
-		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin(), queued[0]));
+		assert_ok!(Referenda::<T>::cancel(T::CancelOrigin::successful_origin().expect("CancelOrigin has no successful origin required for the benchmark"), queued[0]));
 		assert_eq!(TrackQueue::<T>::get(&track).len() as u32, T::MaxQueued::get());
 		let deciding_count = DecidingCount::<T>::get(&track);
 	}: one_fewer_deciding(RawOrigin::Root, track.clone())

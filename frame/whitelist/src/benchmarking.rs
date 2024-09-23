@@ -31,7 +31,7 @@ use crate::Pallet as Whitelist;
 
 benchmarks! {
 	whitelist_call {
-		let origin = T::WhitelistOrigin::successful_origin();
+		let origin = T::WhitelistOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let call_hash = Default::default();
 	}: _<T::Origin>(origin, call_hash)
 	verify {
@@ -46,7 +46,7 @@ benchmarks! {
 	}
 
 	remove_whitelisted_call {
-		let origin = T::WhitelistOrigin::successful_origin();
+		let origin = T::WhitelistOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let call_hash = Default::default();
 		Pallet::<T>::whitelist_call(origin.clone(), call_hash)
 			.expect("whitelisting call must be successful");
@@ -66,7 +66,7 @@ benchmarks! {
 	// If the resulting weight is too big, maybe it worth having a weight which depends
 	// on the size of the call, with a new witness in parameter.
 	dispatch_whitelisted_call {
-		let origin = T::DispatchWhitelistedOrigin::successful_origin();
+		let origin = T::DispatchWhitelistedOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		// NOTE: we remove `10` because we need some bytes to encode the variants and vec length
 		let remark_len = <T::PreimageProvider as PreimageRecipient<_>>::MaxSize::get() - 10;
 		let remark = sp_std::vec![1_8; remark_len as usize];
@@ -97,7 +97,7 @@ benchmarks! {
 	dispatch_whitelisted_call_with_preimage {
 		let n in 1 .. 10_000;
 
-		let origin = T::DispatchWhitelistedOrigin::successful_origin();
+		let origin = T::DispatchWhitelistedOrigin::successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let remark = sp_std::vec![1u8; n as usize];
 
 		let call: <T as Config>::Call = frame_system::Call::remark { remark }.into();

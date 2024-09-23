@@ -783,8 +783,8 @@ impl<O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>, Acco
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> O {
-		O::from(RawOrigin::Root)
+	fn successful_origin() -> Result<O, ()> {
+		Ok(O::from(RawOrigin::Root))
 	}
 }
 
@@ -801,11 +801,11 @@ impl<O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>, Acco
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> O {
+	fn successful_origin() -> Result<O, ()> {
 		let zero_account_id =
 			AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 				.expect("infinite length input; no invalid inputs for type; qed");
-		O::from(RawOrigin::Signed(zero_account_id))
+		Ok(O::from(RawOrigin::Signed(zero_account_id)))
 	}
 }
 
@@ -825,7 +825,7 @@ impl<
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> O {
+	fn successful_origin() -> Result<O, ()> {
 		let zero_account_id =
 			AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 				.expect("infinite length input; no invalid inputs for type; qed");
@@ -834,7 +834,7 @@ impl<
 			Some(account) => account.clone(),
 			None => zero_account_id,
 		};
-		O::from(RawOrigin::Signed(first_member.clone()))
+		Ok(O::from(RawOrigin::Signed(first_member.clone())))
 	}
 }
 
@@ -851,8 +851,8 @@ impl<O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>, Acco
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> O {
-		O::from(RawOrigin::None)
+	fn successful_origin() -> Result<O,()> {
+		Ok(O::from(RawOrigin::None))
 	}
 }
 
