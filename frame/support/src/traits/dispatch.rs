@@ -60,7 +60,7 @@ pub trait EnsureOriginWithArg<OuterOrigin, Argument> {
 	///
 	/// ** Should be used for benchmarking only!!! **
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin(a: &Argument) -> OuterOrigin;
+	fn successful_origin(a: &Argument) -> Result<OuterOrigin,()>;
 }
 
 pub struct AsEnsureOriginWithArg<EO>(sp_std::marker::PhantomData<EO>);
@@ -84,7 +84,7 @@ impl<OuterOrigin, Argument, EO: EnsureOrigin<OuterOrigin>>
 	///
 	/// ** Should be used for benchmarking only!!! **
 	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin(_: &Argument) -> OuterOrigin {
+	fn successful_origin(_: &Argument) -> Result<OuterOrigin,()> {
 		EO::successful_origin()
 	}
 }
@@ -162,7 +162,7 @@ impl<OuterOrigin, L: EnsureOrigin<OuterOrigin>, R: EnsureOrigin<OuterOrigin>>
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn successful_origin() -> Result<OuterOrigin, ()> {
-		Ok(L::successful_origin())
+		L::successful_origin()
 	}
 }
 
